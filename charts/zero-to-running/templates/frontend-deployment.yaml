@@ -1,0 +1,59 @@
+{{- if .Values.services.frontend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zero-to-running.fullname" . }}-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zero-to-running.labels" . | nindent 4 }}
+    app: frontend
+spec:
+  replicas: {{ .Values.services.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: frontend
+      {{- include "zero-to-running.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: frontend
+        {{- include "zero-to-running.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: frontend
+        image: "{{ .Values.services.frontend.image.repository }}:{{ .Values.services.frontend.image.tag }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: {{ .Values.services.frontend.port }}
+          protocol: TCP
+        env:
+        - name: API_URL
+          value: http://{{ include "zero-to-running.fullname" . }}-backend:{{ .Values.services.backend.port }}
+        - name: PORT
+          value: {{ .Values.services.frontend.port | quote }}
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+{{- end }}
+

@@ -1,0 +1,17 @@
+{{- if and .Values.services.postgres.enabled .Values.services.postgres.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "zero-to-running.fullname" . }}-postgres-pvc
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zero-to-running.labels" . | nindent 4 }}
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.services.postgres.persistence.size }}
+{{- end }}
+

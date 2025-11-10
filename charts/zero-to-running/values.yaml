@@ -1,0 +1,95 @@
+# Default values for zero-to-running
+# This is a YAML-formatted file.
+
+namespace: zero-to-running
+
+# Port mappings
+ports:
+  frontend: 3001
+  backend: 3000
+  postgres: 5432
+  redis: 6379
+  dashboard: 3002
+
+# Service configuration
+services:
+  frontend:
+    enabled: true
+    image:
+      repository: nginx
+      tag: "alpine"
+    replicas: 1
+    port: 3001
+    # For now, using nginx as placeholder - replace with your frontend image
+    # image:
+    #   repository: your-frontend-image
+    #   tag: "latest"
+    
+  backend:
+    enabled: true
+    image:
+      repository: nginx
+      tag: "alpine"
+    replicas: 1
+    port: 3000
+    # For now, using nginx as placeholder - replace with your backend image
+    # image:
+    #   repository: your-backend-image
+    #   tag: "latest"
+    
+  postgres:
+    enabled: true
+    image:
+      repository: postgres
+      tag: "15-alpine"
+    replicas: 1
+    port: 5432
+    database:
+      name: dev_db
+      user: dev_user
+      password: dev_password
+    persistence:
+      enabled: false
+      size: 10Gi
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+        
+  redis:
+    enabled: true
+    image:
+      repository: redis
+      tag: "7-alpine"
+    replicas: 1
+    port: 6379
+    password: ""
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+# Minikube configuration
+minikube:
+  cpus: 4
+  memory: 8192
+  driver: docker
+
+# Dashboard configuration
+dashboard:
+  enabled: true
+  auto_open: true
+  port: 3002
+
+# Debug mode
+debug: false
+
+# Seed test data
+seed_data: false
+

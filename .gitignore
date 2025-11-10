@@ -1,0 +1,31 @@
+# Zero-to-Running CLI Tool - Git Ignore
+
+# Logs directory
+.dev/logs/
+.dev/
+
+# Configuration overrides (user-specific)
+dev-config.local.yaml
+*.local.yaml
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Kubernetes context files
+.kube/
+
+# Minikube files (if stored locally)
+.minikube/
+

@@ -1,0 +1,59 @@
+# Zero-to-Running Development Configuration
+# Copy this file to dev-config.yaml in the project root and customize as needed
+
+# Namespace configuration
+namespace: zero-to-running
+
+# Port mappings
+ports:
+  frontend: 3001
+  backend: 3000
+  postgres: 5432
+  redis: 6379
+  dashboard: 3002
+
+# Service configuration
+services:
+  # Enable/disable services
+  frontend:
+    enabled: true
+    image: # Specify image if custom
+  backend:
+    enabled: true
+    image: # Specify image if custom
+  postgres:
+    enabled: true
+    image: postgres:15-alpine
+  redis:
+    enabled: true
+    image: redis:7-alpine
+
+# Database configuration
+database:
+  name: dev_db
+  user: dev_user
+  password: dev_password
+  # Note: In production, use secrets management
+
+# Redis configuration
+redis:
+  password: "" # Empty for dev
+
+# Minikube configuration
+minikube:
+  cpus: 4
+  memory: 8192 # 8GB in MB
+  driver: docker # or virtualbox, hyperkit, etc.
+
+# Dashboard configuration
+dashboard:
+  enabled: true
+  auto_open: true
+  port: 3002
+
+# Debug mode
+debug: false
+
+# Seed test data
+seed_data: false
+

@@ -1,0 +1,21 @@
+{{- if .Values.services.backend.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zero-to-running.fullname" . }}-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zero-to-running.labels" . | nindent 4 }}
+    app: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.services.backend.port }}
+    targetPort: {{ .Values.services.backend.port }}
+    protocol: TCP
+    name: http
+  selector:
+    app: backend
+    {{- include "zero-to-running.selectorLabels" . | nindent 4 }}
+{{- end }}
+
