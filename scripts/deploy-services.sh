@@ -62,25 +62,36 @@ deploy_services() {
         
         if helm list -n "$NAMESPACE" | grep -q "$release_name"; then
             print_info "Upgrading existing release"
-            if ! helm upgrade "$release_name" "$chart_path" \
+            local helm_output
+            helm_output=$(helm upgrade "$release_name" "$chart_path" \
                 -n "$NAMESPACE" \
                 -f "$values_file" \
                 --wait \
-                --timeout 10m; then
+                --timeout 10m 2>&1) || {
                 print_error "Helm upgrade failed"
+                echo ""
+                echo "Helm error output:"
+                echo "$helm_output"
+                echo ""
                 "$SCRIPT_DIR/rollback.sh" "$NAMESPACE" "$release_name"
                 exit_with_error 1 "Helm upgrade failed"
-            fi
+            }
         else
-            if ! helm install "$release_name" "$chart_path" \
+            print_info "Installing new release"
+            local helm_output
+            helm_output=$(helm install "$release_name" "$chart_path" \
                 -n "$NAMESPACE" \
                 -f "$values_file" \
                 --wait \
-                --timeout 10m; then
+                --timeout 10m 2>&1) || {
                 print_error "Helm install failed"
+                echo ""
+                echo "Helm error output:"
+                echo "$helm_output"
+                echo ""
                 "$SCRIPT_DIR/rollback.sh" "$NAMESPACE" "$release_name"
                 exit_with_error 1 "Helm install failed"
-            fi
+            }
         fi
         
         local deploy_end=$(date +%s)
