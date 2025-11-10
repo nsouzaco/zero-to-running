@@ -63,8 +63,10 @@ cleanup_partial_deployment() {
     local max_wait=60
     local waited=0
     while [ $waited -lt $max_wait ]; do
-        local terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" || echo "0")
-        if [ "$terminating" -eq 0 ]; then
+        local terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" 2>/dev/null || echo "0")
+        # Ensure it's a number
+        terminating=${terminating:-0}
+        if [ "$terminating" -eq 0 ] 2>/dev/null; then
             break
         fi
         sleep 2
