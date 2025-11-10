@@ -25,8 +25,10 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
-          containerPort: {{ .Values.services.backend.port }}
+          containerPort: 80
           protocol: TCP
+        # For nginx placeholder, expose on port 80
+        # When using actual backend image, change containerPort to match your app
         env:
         - name: DATABASE_URL
           value: postgresql://{{ .Values.services.postgres.database.user }}:{{ .Values.services.postgres.database.password }}@{{ include "zero-to-running.fullname" . }}-postgres:5432/{{ .Values.services.postgres.database.name }}
@@ -43,16 +45,16 @@ spec:
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /health
-            port: http
+            path: /
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /health
-            port: http
+            path: /
+            port: 80
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3

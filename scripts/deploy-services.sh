@@ -43,21 +43,25 @@ check_helm_chart() {
 # Check and clean up any existing resources before deployment
 cleanup_before_deploy() {
     # Check if there are any resources still terminating
-    local terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" || echo "0")
-    if [ "$terminating" -gt 0 ]; then
+    local terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" 2>/dev/null || echo "0")
+    # Ensure it's a number
+    terminating=${terminating:-0}
+    if [ "$terminating" -gt 0 ] 2>/dev/null; then
         print_warning "Found $terminating pods still terminating, waiting for cleanup..."
         local max_wait=60
         local waited=0
         while [ $waited -lt $max_wait ]; do
-            terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" || echo "0")
-            if [ "$terminating" -eq 0 ]; then
+            terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" 2>/dev/null || echo "0")
+            terminating=${terminating:-0}
+            if [ "$terminating" -eq 0 ] 2>/dev/null; then
                 print_success "All pods terminated"
                 break
             fi
             sleep 2
             waited=$((waited + 2))
         done
-        if [ "$terminating" -gt 0 ]; then
+        terminating=${terminating:-0}
+        if [ "$terminating" -gt 0 ] 2>/dev/null; then
             print_warning "Some pods still terminating, forcing cleanup..."
             kubectl delete pods --all -n "$NAMESPACE" --grace-period=0 --force 2>/dev/null || true
             sleep 2
