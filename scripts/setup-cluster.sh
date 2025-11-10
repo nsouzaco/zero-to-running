@@ -122,15 +122,22 @@ start_minikube() {
     exit_with_error 1 "Minikube startup failed"
 }
 
-# Create namespace
-create_namespace() {
-    print_step "Creating namespace: $NAMESPACE"
-    
+# Check and clean namespace if needed
+check_namespace() {
     if kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
-        print_info "Namespace $NAMESPACE already exists"
+        # Check if namespace has Helm labels (managed by Helm)
+        local managed_by=$(kubectl get namespace "$NAMESPACE" -o jsonpath='{.metadata.labels.app\.kubernetes\.io/managed-by}' 2>/dev/null || echo "")
+        
+        if [ "$managed_by" != "Helm" ]; then
+            print_warning "Namespace $NAMESPACE exists but is not managed by Helm"
+            print_info "Deleting namespace to let Helm manage it..."
+            kubectl delete namespace "$NAMESPACE" --wait=true --timeout=30s 2>/dev/null || true
+            sleep 2
+        else
+            print_info "Namespace $NAMESPACE already exists and is managed by Helm"
+        fi
     else
-        kubectl create namespace "$NAMESPACE" || exit_with_error 1 "Failed to create namespace"
-        print_success "Namespace $NAMESPACE created"
+        print_info "Namespace $NAMESPACE will be created by Helm"
     fi
 }
 
@@ -152,7 +159,7 @@ main() {
     fi
     
     set_context
-    create_namespace
+    check_namespace
     
     echo ""
     print_success "Cluster setup complete!"
