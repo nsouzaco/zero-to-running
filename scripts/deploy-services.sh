@@ -65,6 +65,7 @@ deploy_services() {
             local helm_output
             helm_output=$(helm upgrade "$release_name" "$chart_path" \
                 -n "$NAMESPACE" \
+                --create-namespace \
                 -f "$values_file" \
                 --wait \
                 --timeout 10m 2>&1) || {
@@ -81,6 +82,7 @@ deploy_services() {
             local helm_output
             helm_output=$(helm install "$release_name" "$chart_path" \
                 -n "$NAMESPACE" \
+                --create-namespace \
                 -f "$values_file" \
                 --wait \
                 --timeout 10m 2>&1) || {
