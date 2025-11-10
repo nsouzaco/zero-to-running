@@ -9,7 +9,7 @@ source "$SCRIPT_DIR/utils.sh"
 NAMESPACE=${1:-zero-to-running}
 
 # Services to check (adjust based on your Helm chart)
-SERVICES=("postgres" "redis" "backend" "frontend")
+SERVICES=("postgres" "redis" "backend" "frontend" "dashboard")
 
 # Check service health
 check_service_health() {

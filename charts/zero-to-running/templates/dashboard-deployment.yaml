@@ -1,0 +1,70 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zero-to-running.fullname" . }}-dashboard
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zero-to-running.labels" . | nindent 4 }}
+    app: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+      {{- include "zero-to-running.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: dashboard
+        {{- include "zero-to-running.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: dashboard-sa
+      containers:
+      - name: dashboard
+        image: node:18-alpine
+        command: ["sh", "-c"]
+        args:
+        - |
+          apk add --no-cache curl kubectl
+          cd /app
+          npm install express ws cors
+          node server.js
+        workingDir: /app
+        env:
+        - name: PORT
+          value: {{ .Values.dashboard.port | quote }}
+        - name: NAMESPACE
+          value: {{ .Values.namespace | quote }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.dashboard.port }}
+          protocol: TCP
+        volumeMounts:
+        - name: dashboard-code
+          mountPath: /app
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.dashboard.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.dashboard.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: dashboard-code
+        configMap:
+          name: {{ include "zero-to-running.fullname" . }}-dashboard-code
+{{- end }}
+

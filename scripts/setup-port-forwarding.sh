@@ -94,6 +94,13 @@ main() {
     setup_port_forward "postgres" "$postgres_port" 5432
     setup_port_forward "redis" "$redis_port" 6379
     
+    # Setup dashboard port forward if enabled
+    local dashboard_port=3002
+    if [ -f "dev-config.yaml" ]; then
+        dashboard_port=$(grep -E "^\s*port:" dev-config.yaml | grep -A 5 "dashboard:" | grep -E "^\s*port:" | awk '{print $2}' || echo "3002")
+    fi
+    setup_port_forward "dashboard" "$dashboard_port" "$dashboard_port"
+    
     echo ""
     print_success "Port forwarding setup complete!"
     print_info "Port forwards are running in the background"

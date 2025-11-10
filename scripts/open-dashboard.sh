@@ -33,6 +33,12 @@ check_dashboard() {
         fi
     fi
     
+    # Also check if dashboard pod is running
+    local namespace=${NAMESPACE:-zero-to-running}
+    if kubectl get pods -n "$namespace" -l app=dashboard -o jsonpath='{.items[0].status.phase}' 2>/dev/null | grep -q "Running"; then
+        return 0
+    fi
+    
     return 1
 }
 

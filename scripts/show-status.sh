@@ -44,6 +44,9 @@ get_service_port() {
         redis)
             default_port=6379
             ;;
+        dashboard)
+            default_port=3002
+            ;;
         *)
             default_port="N/A"
             ;;
@@ -76,6 +79,9 @@ get_service_url() {
         redis)
             echo "redis://localhost:$port"
             ;;
+        dashboard)
+            echo "http://localhost:$port"
+            ;;
         *)
             echo "http://localhost:$port"
             ;;
@@ -105,7 +111,7 @@ main() {
     printf "%-15s %-20s %-10s %s\n" "SERVICE" "STATUS" "PORT" "URL"
     echo "----------------------------------------------------------------"
     
-    local services=("postgres" "redis" "backend" "frontend")
+    local services=("postgres" "redis" "backend" "frontend" "dashboard")
     
     for service in "${services[@]}"; do
         local status=$(get_service_status "$service")
