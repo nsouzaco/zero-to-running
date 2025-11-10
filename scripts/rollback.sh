@@ -58,6 +58,19 @@ cleanup_partial_deployment() {
     # Clean up deployments
     kubectl delete deployment --all -n "$NAMESPACE" 2>/dev/null || true
     
+    # Wait for all resources to be fully terminated
+    print_step "Waiting for resources to terminate"
+    local max_wait=60
+    local waited=0
+    while [ $waited -lt $max_wait ]; do
+        local terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" || echo "0")
+        if [ "$terminating" -eq 0 ]; then
+            break
+        fi
+        sleep 2
+        waited=$((waited + 2))
+    done
+    
     print_success "Partial deployment cleaned up"
 }
 

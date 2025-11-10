@@ -40,9 +40,37 @@ check_helm_chart() {
     fi
 }
 
+# Check and clean up any existing resources before deployment
+cleanup_before_deploy() {
+    # Check if there are any resources still terminating
+    local terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" || echo "0")
+    if [ "$terminating" -gt 0 ]; then
+        print_warning "Found $terminating pods still terminating, waiting for cleanup..."
+        local max_wait=60
+        local waited=0
+        while [ $waited -lt $max_wait ]; do
+            terminating=$(kubectl get pods -n "$NAMESPACE" 2>/dev/null | grep -c "Terminating" || echo "0")
+            if [ "$terminating" -eq 0 ]; then
+                print_success "All pods terminated"
+                break
+            fi
+            sleep 2
+            waited=$((waited + 2))
+        done
+        if [ "$terminating" -gt 0 ]; then
+            print_warning "Some pods still terminating, forcing cleanup..."
+            kubectl delete pods --all -n "$NAMESPACE" --grace-period=0 --force 2>/dev/null || true
+            sleep 2
+        fi
+    fi
+}
+
 # Deploy services with Helm
 deploy_services() {
     print_step "Deploying services to namespace: $NAMESPACE"
+    
+    # Clean up any existing resources before deployment
+    cleanup_before_deploy
     
     # Check for single chart or multiple charts
     if [ -d "charts/zero-to-running" ]; then
