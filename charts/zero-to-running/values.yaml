@@ -77,8 +77,8 @@ services:
 
 # Minikube configuration
 minikube:
-  cpus: 4
-  memory: 8192
+  cpus: 2
+  memory: 3072  # 3GB - adjust based on your Docker Desktop memory allocation
   driver: docker
 
 # Dashboard configuration

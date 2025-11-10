@@ -21,6 +21,26 @@ make dev-down
 make dev-help
 ```
 
+## Testing
+
+See [TESTING.md](TESTING.md) for comprehensive testing instructions.
+
+**Quick test:**
+```bash
+# 1. Check dependencies (will stop if missing)
+make dev
+
+# 2. Verify services are running
+make dev-status
+
+# 3. Test service access
+curl http://localhost:3001  # Frontend
+curl http://localhost:3000  # Backend
+
+# 4. Clean up
+make dev-down
+```
+
 ## Prerequisites
 
 - Docker Desktop or equivalent container runtime

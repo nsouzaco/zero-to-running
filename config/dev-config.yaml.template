@@ -41,8 +41,8 @@ redis:
 
 # Minikube configuration
 minikube:
-  cpus: 4
-  memory: 8192 # 8GB in MB
+  cpus: 2
+  memory: 3072 # 3GB in MB - adjust based on your Docker Desktop memory
   driver: docker # or virtualbox, hyperkit, etc.
 
 # Dashboard configuration
