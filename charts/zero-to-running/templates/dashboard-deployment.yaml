@@ -27,10 +27,13 @@ spec:
         args:
         - |
           apk add --no-cache curl kubectl
+          mkdir -p /app/public
+          cp /config/server.js /app/
+          cp /config/package.json /app/
+          cp /config/index.html /app/public/
           cd /app
           npm install express ws cors
           node server.js
-        workingDir: /app
         env:
         - name: PORT
           value: {{ .Values.dashboard.port | quote }}
@@ -42,7 +45,7 @@ spec:
           protocol: TCP
         volumeMounts:
         - name: dashboard-code
-          mountPath: /app
+          mountPath: /config
         resources:
           requests:
             memory: "128Mi"
