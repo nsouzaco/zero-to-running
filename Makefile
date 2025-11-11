@@ -12,7 +12,9 @@ SCRIPTS_DIR := scripts
 
 # Main command: Start development environment
 dev:
+	@$(SCRIPTS_DIR)/show-banner.sh
 	@echo "🚀 Starting Zero-to-Running Developer Environment..."
+	@echo ""
 	@mkdir -p .dev && echo $$(date +%s) > .dev/setup-start-time
 	@$(SCRIPTS_DIR)/check-dependencies.sh
 	@$(SCRIPTS_DIR)/setup-cluster.sh $(NAMESPACE)
