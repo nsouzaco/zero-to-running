@@ -47,12 +47,12 @@ setup_port_forward() {
     
     print_step "Setting up port forward for $service (localhost:$local_port -> $service_name:$remote_port)"
     
-    # Start port forward in background
-    kubectl port-forward -n "$NAMESPACE" "svc/$service_name" "$local_port:$remote_port" >/dev/null 2>&1 &
+    # Start port forward in background with nohup to keep it alive
+    nohup kubectl port-forward -n "$NAMESPACE" "svc/$service_name" "$local_port:$remote_port" >/dev/null 2>&1 &
     local pf_pid=$!
     
     # Wait a moment to check if it started successfully
-    sleep 1
+    sleep 2
     if ! kill -0 "$pf_pid" 2>/dev/null; then
         print_error "Failed to start port forward for $service"
         return 1
@@ -94,12 +94,19 @@ main() {
     setup_port_forward "postgres" "$postgres_port" 5432
     setup_port_forward "redis" "$redis_port" 6379
     
-    # Setup dashboard port forward if enabled
+    # Setup dashboard port forward if enabled and dashboard is ready
     local dashboard_port=3002
     if [ -f "dev-config.yaml" ]; then
         dashboard_port=$(grep -E "^\s*port:" dev-config.yaml | grep -A 5 "dashboard:" | grep -E "^\s*port:" | awk '{print $2}' || echo "3002")
     fi
-    setup_port_forward "dashboard" "$dashboard_port" "$dashboard_port"
+    
+    # Check if dashboard pod exists and is ready
+    local dashboard_ready=$(kubectl get pods -n "$NAMESPACE" -l app=dashboard -o jsonpath='{.items[0].status.containerStatuses[0].ready}' 2>/dev/null || echo "false")
+    if [ "$dashboard_ready" = "true" ]; then
+        setup_port_forward "dashboard" "$dashboard_port" "$dashboard_port"
+    else
+        print_info "Dashboard not ready yet, port forward will be set up when dashboard opens"
+    fi
     
     echo ""
     print_success "Port forwarding setup complete!"

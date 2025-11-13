@@ -78,7 +78,7 @@ services:
 # Minikube configuration
 minikube:
   cpus: 2
-  memory: 3072  # 3GB - adjust based on your Docker Desktop memory allocation
+  memory: 2048  # 2GB - recommended for reliable operation
   driver: docker
 
 # Dashboard configuration
@@ -92,4 +92,9 @@ debug: false
 
 # Seed test data
 seed_data: false
+
+# Secrets management
+# When enabled, uses Kubernetes Secrets instead of plain values
+secrets:
+  enabled: true  # Set to false to use plain values (for backward compatibility)
 

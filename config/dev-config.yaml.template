@@ -1,6 +1,13 @@
 # Zero-to-Running Development Configuration
 # Copy this file to dev-config.yaml in the project root and customize as needed
 
+# Profile configuration
+# Options: minimal, full, debug
+# - minimal: Only essential services (postgres, backend)
+# - full: All services enabled (default)
+# - debug: Full stack with debug mode enabled
+profile: full
+
 # Namespace configuration
 namespace: zero-to-running
 
@@ -17,32 +24,64 @@ services:
   # Enable/disable services
   frontend:
     enabled: true
-    image: # Specify image if custom
+    image:
+      repository: nginx
+      tag: "alpine"
+    replicas: 1
+    port: 3001
   backend:
     enabled: true
-    image: # Specify image if custom
+    image:
+      repository: nginx
+      tag: "alpine"
+    replicas: 1
+    port: 3000
   postgres:
     enabled: true
-    image: postgres:15-alpine
+    image:
+      repository: postgres
+      tag: "15-alpine"
+    replicas: 1
+    port: 5432
+    database:
+      name: dev_db
+      user: dev_user
+      password: dev_password
+    persistence:
+      enabled: false
+      size: 10Gi
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
   redis:
     enabled: true
-    image: redis:7-alpine
+    image:
+      repository: redis
+      tag: "7-alpine"
+    replicas: 1
+    port: 6379
+    password: "" # Empty for dev
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
 
-# Database configuration
-database:
-  name: dev_db
-  user: dev_user
-  password: dev_password
-  # Note: In production, use secrets management
-
-# Redis configuration
-redis:
-  password: "" # Empty for dev
+# Secrets management
+# When enabled, uses Kubernetes Secrets instead of plain values
+secrets:
+  enabled: true  # Set to false to use plain values (for backward compatibility)
 
 # Minikube configuration
 minikube:
   cpus: 2
-  memory: 3072 # 3GB in MB - adjust based on your Docker Desktop memory
+  memory: 2048 # 2GB in MB - recommended for reliable operation
   driver: docker # or virtualbox, hyperkit, etc.
 
 # Dashboard configuration

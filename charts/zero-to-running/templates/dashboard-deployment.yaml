@@ -57,14 +57,18 @@ spec:
           httpGet:
             path: /
             port: {{ .Values.dashboard.port }}
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /
             port: {{ .Values.dashboard.port }}
-          initialDelaySeconds: 10
+          initialDelaySeconds: 45
           periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
       volumes:
       - name: dashboard-code
         configMap:

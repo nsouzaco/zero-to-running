@@ -1,7 +1,7 @@
 # Zero-to-Running CLI Tool
 # Makefile for managing local development environment
 
-.PHONY: dev dev-down dev-status dev-logs dev-dashboard dev-help dev-reset
+.PHONY: dev dev-down dev-status dev-logs dev-dashboard dev-help dev-reset dev-kill-ports
 
 # Default namespace for services
 NAMESPACE ?= zero-to-running
@@ -11,14 +11,16 @@ CONFIG_FILE ?= dev-config.yaml
 SCRIPTS_DIR := scripts
 
 # Main command: Start development environment
+# Usage: make dev [PROFILE=minimal|full|debug] [PORT=3002] [other overrides]
 dev:
 	@$(SCRIPTS_DIR)/show-banner.sh
 	@echo "🚀 Starting Zero-to-Running Developer Environment..."
+	@if [ -n "$(PROFILE)" ]; then echo "📋 Using profile: $(PROFILE)"; fi
 	@echo ""
 	@mkdir -p .dev && echo $$(date +%s) > .dev/setup-start-time
 	@$(SCRIPTS_DIR)/check-dependencies.sh
 	@$(SCRIPTS_DIR)/setup-cluster.sh $(NAMESPACE)
-	@$(SCRIPTS_DIR)/deploy-services.sh $(NAMESPACE) $(CONFIG_FILE)
+	@PROFILE=$(PROFILE) $(SCRIPTS_DIR)/deploy-services.sh $(NAMESPACE) $(CONFIG_FILE)
 	@$(SCRIPTS_DIR)/wait-for-healthy.sh $(NAMESPACE)
 	@$(SCRIPTS_DIR)/show-summary.sh $(NAMESPACE)
 	@$(SCRIPTS_DIR)/open-dashboard.sh $(CONFIG_FILE) || true
@@ -48,6 +50,10 @@ dev-help:
 dev-reset: dev-down
 	@echo "🧹 Performing full cleanup..."
 	@$(SCRIPTS_DIR)/cleanup.sh $(NAMESPACE)
+
+# Kill processes using expected service ports
+dev-kill-ports:
+	@$(SCRIPTS_DIR)/kill-port-conflicts.sh
 
 # Prevent make from treating log service names as targets
 %:

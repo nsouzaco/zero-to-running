@@ -19,6 +19,33 @@ spec:
         app: backend
         {{- include "zero-to-running.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if or .Values.services.postgres.enabled .Values.services.redis.enabled }}
+      initContainers:
+      {{- if .Values.services.postgres.enabled }}
+      - name: wait-for-postgres
+        image: busybox:1.36
+        command: ['sh', '-c']
+        args:
+        - |
+          until nc -z {{ include "zero-to-running.fullname" . }}-postgres 5432; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+      {{- end }}
+      {{- if .Values.services.redis.enabled }}
+      - name: wait-for-redis
+        image: busybox:1.36
+        command: ['sh', '-c']
+        args:
+        - |
+          until nc -z {{ include "zero-to-running.fullname" . }}-redis 6379; do
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+          echo "Redis is ready!"
+      {{- end }}
+      {{- end }}
       containers:
       - name: backend
         image: "{{ .Values.services.backend.image.repository }}:{{ .Values.services.backend.image.tag }}"
@@ -27,15 +54,60 @@ spec:
         - name: http
           containerPort: 80
           protocol: TCP
+        {{- if .Values.debug }}
+        - name: debug
+          containerPort: 9229
+          protocol: TCP
+        {{- end }}
         # For nginx placeholder, expose on port 80
         # When using actual backend image, change containerPort to match your app
         env:
+        {{- if .Values.secrets.enabled }}
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: postgres-password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: postgres-db
+        # DATABASE_URL can be constructed by the app from individual env vars above
+        # For backward compatibility, also provide constructed URL (using values, not secrets)
+        - name: DATABASE_URL
+          value: postgresql://{{ .Values.services.postgres.database.user }}:{{ .Values.services.postgres.database.password }}@{{ include "zero-to-running.fullname" . }}-postgres:5432/{{ .Values.services.postgres.database.name }}
+        {{- if .Values.services.redis.password }}
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: redis-password
+        - name: REDIS_URL
+          value: redis://{{ include "zero-to-running.fullname" . }}-redis:6379
+        {{- else }}
+        - name: REDIS_URL
+          value: redis://{{ include "zero-to-running.fullname" . }}-redis:6379
+        {{- end }}
+        {{- else }}
         - name: DATABASE_URL
           value: postgresql://{{ .Values.services.postgres.database.user }}:{{ .Values.services.postgres.database.password }}@{{ include "zero-to-running.fullname" . }}-postgres:5432/{{ .Values.services.postgres.database.name }}
         - name: REDIS_URL
           value: redis://{{ include "zero-to-running.fullname" . }}-redis:6379
+        {{- end }}
         - name: PORT
           value: {{ .Values.services.backend.port | quote }}
+        {{- if .Values.debug }}
+        - name: NODE_ENV
+          value: "development"
+        - name: DEBUG
+          value: "true"
+        {{- end }}
         resources:
           requests:
             memory: "256Mi"

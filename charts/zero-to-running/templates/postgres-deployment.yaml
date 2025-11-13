@@ -28,12 +28,30 @@ spec:
           containerPort: 5432
           protocol: TCP
         env:
+        {{- if .Values.secrets.enabled }}
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: postgres-db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "zero-to-running.fullname" . }}-secrets
+              key: postgres-password
+        {{- else }}
         - name: POSTGRES_DB
           value: {{ .Values.services.postgres.database.name | quote }}
         - name: POSTGRES_USER
           value: {{ .Values.services.postgres.database.user | quote }}
         - name: POSTGRES_PASSWORD
           value: {{ .Values.services.postgres.database.password | quote }}
+        {{- end }}
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
         volumeMounts:
